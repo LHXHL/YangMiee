@@ -85,7 +85,8 @@ cd YangMiee
 
 2. 使用Docker Compose部署
 ```bash
-docker-compose up -d
+chomod +x docker-start.sh
+./docker-start.sh
 ```
 3. docker启动完成
 ![](img/docker.png)
