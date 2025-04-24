@@ -1,0 +1,44 @@
+name: YangMiee Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - main
+      - master
+
+jobs:
+  build:
+    name: Build and Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+
+      - name: Build
+        run: |
+          GOOS=linux GOARCH=amd64 go build -o bin/yangmiee-linux-amd64 ./cmd/yangmiee.go
+          GOOS=linux GOARCH=arm64 go build -o bin/yangmiee-linux-arm64 ./cmd/yangmiee.go
+          GOOS=windows GOARCH=amd64 go build -o bin/yangmiee-windows-amd64.exe ./cmd/yangmiee.go
+          GOOS=darwin GOARCH=amd64 go build -o bin/yangmiee-darwin-amd64 ./cmd/yangmiee.go
+          GOOS=darwin GOARCH=arm64 go build -o bin/yangmiee-darwin-arm64 ./cmd/yangmiee.go
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            bin/yangmiee-linux-amd64
+            bin/yangmiee-linux-arm64
+            bin/yangmiee-windows-amd64.exe
+            bin/yangmiee-darwin-amd64
+            bin/yangmiee-darwin-arm64
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

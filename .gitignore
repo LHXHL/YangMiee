@@ -1,0 +1,12 @@
+/venv/
+/.idea/
+*.pyc
+*/migrations/
+*.sqlite3
+db.sqlite3
+/logs/
+build
+/.vscode/
+.DS_Store
+.sock.lock
+/cmd/logs/

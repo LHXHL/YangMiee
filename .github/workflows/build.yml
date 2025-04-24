@@ -1,0 +1,35 @@
+name: YangMiee Build
+
+on:
+  push:
+    branches:
+      - '**'
+    paths-ignore:
+      - '**.md'
+      - '.github/**'
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+
+      - name: Build
+        run: |
+          GOOS=linux GOARCH=amd64 go build -o bin/yangmiee-linux-amd64 ./cmd/yangmiee.go
+          GOOS=darwin GOARCH=amd64 go build -o bin/yangmiee-darwin-amd64 ./cmd/yangmiee.go
+
+      - name: Test
+        run: go test ./... 

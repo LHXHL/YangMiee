@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0.4
+    container_name: yangmiee-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGODB_IP=${MONGODB_IP:-mongodb}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE=yangmieeDB
+    restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    container_name: yangmiee-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+      args:
+        - TARGETPLATFORM=${TARGETPLATFORM:-linux/amd64}
+    container_name: yangmiee-backend
+    ports:
+      - "31337:31337"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - REDIS_IP=${REDIS_IP:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET:-yangmiee_jwt_secret}
+      - SESSION_SECRET=${SESSION_SECRET:-yangmiee_session_secret}
+      - SERVER_PORT=31337
+    volumes:
+      - backend_data:/app/data
+      - ./logs:/app/logs
+      - ./wordlist:/app/wordlist
+    depends_on:
+      - mongodb
+      - redis
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
+    name: yangmiee-mongodb-data
+  redis_data:
+    name: yangmiee-redis-data
+  backend_data:
+    name: yangmiee-backend-data
+
+networks:
+  default:
+    name: yangmiee-network
+    driver: bridge
